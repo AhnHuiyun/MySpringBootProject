@@ -20,15 +20,13 @@ public class Book {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    //유니크한 값을 가져야 하고, Null 값을 허용하지 않음
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false)
     private String title;
 
-    //Null 값을 허용하지 않음
     @Column(nullable = false)
     private String author;
 
-    @Column(nullable = false)
+    @Column(unique = true, nullable = false)
     private String isbn;
 
     @Column(nullable = false)
