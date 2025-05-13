@@ -1,38 +1,39 @@
 package com.rookies3.myspringbootlab.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.DynamicUpdate;
+import lombok.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Entity
-@Table(name="books")
+@Table(name = "books")
+@Data
 @Getter
 @Setter
-@DynamicUpdate
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Book {
-    //Primary Key, pk 값을 persistence provider 가 결정해라
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "book_id")
     private Long id;
 
     @Column(nullable = false)
     private String title;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String author;
 
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false)
     private String isbn;
 
     @Column(nullable = false)
     private Integer price;
 
-    @Column(nullable = false, updatable = false)
-    @CreationTimestamp
+    @Column(nullable = false)
     private LocalDate publishDate;
+
+    @OneToOne(mappedBy = "book", cascade = CascadeType.ALL, fetch = FetchType.LAZY, optional = false)
+    private BookDetail bookDetail;
 }
