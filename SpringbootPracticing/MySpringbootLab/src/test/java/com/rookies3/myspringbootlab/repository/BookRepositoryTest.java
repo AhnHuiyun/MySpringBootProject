@@ -5,6 +5,9 @@ import com.rookies3.myspringbootlab.entity.BookDetail;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Rollback;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -23,6 +26,7 @@ public class BookRepositoryTest {
 
     @Test
     public void createBookWithBookDetail() {
+        // Given
         Book book = Book.builder()
                 .title("Clean Code")
                 .author("Robert C. Martin")
@@ -43,8 +47,10 @@ public class BookRepositoryTest {
 
         book.setBookDetail(bookDetail);
 
+        // When
         Book savedBook = bookRepository.save(book);
 
+        // Then
         assertThat(savedBook).isNotNull();
         assertThat(savedBook.getId()).isNotNull();
         assertThat(savedBook.getTitle()).isEqualTo("Clean Code");
@@ -56,6 +62,7 @@ public class BookRepositoryTest {
 
     @Test
     public void findBookByIsbn() {
+        // Given
         Book book = Book.builder()
                 .title("Clean Code")
                 .author("Robert C. Martin")
@@ -77,14 +84,17 @@ public class BookRepositoryTest {
         book.setBookDetail(bookDetail);
         bookRepository.save(book);
 
+        // When
         Optional<Book> foundBook = bookRepository.findByIsbn("9780132350884");
 
+        // Then
         assertThat(foundBook).isPresent();
         assertThat(foundBook.get().getTitle()).isEqualTo("Clean Code");
     }
 
     @Test
     public void findByIdWithBookDetail() {
+        // Given
         Book book = Book.builder()
                 .title("Clean Code")
                 .author("Robert C. Martin")
@@ -106,8 +116,10 @@ public class BookRepositoryTest {
         book.setBookDetail(bookDetail);
         Book savedBook = bookRepository.save(book);
 
+        // When
         Optional<Book> foundBook = bookRepository.findByIdWithBookDetail(savedBook.getId());
 
+        // Then
         assertThat(foundBook).isPresent();
         assertThat(foundBook.get().getBookDetail()).isNotNull();
         assertThat(foundBook.get().getBookDetail().getPublisher()).isEqualTo("Prentice Hall");
@@ -136,8 +148,10 @@ public class BookRepositoryTest {
 
         bookRepository.saveAll(List.of(book1, book2, book3));
 
+        // When
         List<Book> martinBooks = bookRepository.findByAuthorContainingIgnoreCase("martin");
 
+        // Then
         assertThat(martinBooks).hasSize(2);
         assertThat(martinBooks).extracting(Book::getTitle)
                 .containsExactlyInAnyOrder("Clean Code", "Clean Architecture");
@@ -167,8 +181,10 @@ public class BookRepositoryTest {
         book.setBookDetail(bookDetail);
         Book savedBook = bookRepository.save(book);
 
+        // When
         Optional<BookDetail> foundBookDetail = bookDetailRepository.findByBookId(savedBook.getId());
 
+        // Then
         assertThat(foundBookDetail).isPresent();
         assertThat(foundBookDetail.get().getDescription()).contains("agile software craftsmanship");
     }

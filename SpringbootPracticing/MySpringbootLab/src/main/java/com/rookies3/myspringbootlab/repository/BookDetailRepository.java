@@ -9,13 +9,14 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
-// BookDetailRepository.java
 @Repository
 public interface BookDetailRepository extends JpaRepository<BookDetail, Long> {
+
     Optional<BookDetail> findByBookId(Long bookId);
 
     @Query("SELECT bd FROM BookDetail bd JOIN FETCH bd.book WHERE bd.id = :id")
-    Optional<BookDetail> findByIdWithBook(@Param("id") Long bookId);
+    Optional<BookDetail> findByIdWithBook(@Param("id") Long id);
 
-    List<BookDetail> findByPublisher(String publisher);
+    @Query("SELECT bd FROM BookDetail bd WHERE bd.publisher = :publisher")
+    List<BookDetail> findByPublisher(@Param("publisher") String publisher);
 }
