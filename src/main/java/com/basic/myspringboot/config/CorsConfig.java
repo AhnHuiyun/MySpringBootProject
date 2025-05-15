@@ -1,4 +1,4 @@
-gpackage com.basic.myspringboot.config;
+package com.basic.myspringboot.config;
 
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
