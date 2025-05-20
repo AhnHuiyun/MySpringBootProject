@@ -1,0 +1,96 @@
+package com.rookies3.myspringbootlab.service;
+
+import com.rookies3.myspringbootlab.controller.dto.PublisherDTO;
+import com.rookies3.myspringbootlab.entity.Publisher;
+import com.rookies3.myspringbootlab.exception.BusinessException;
+import com.rookies3.myspringbootlab.exception.ErrorCode;
+import com.rookies3.myspringbootlab.repository.BookRepository;
+import com.rookies3.myspringbootlab.repository.PublisherRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+@Transactional(readOnly = true)
+@RequiredArgsConstructor
+public class PublisherService {
+
+    private final PublisherRepository publisherRepository;
+    private final BookRepository bookRepository;
+
+    public List<PublisherDTO.SimpleResponse> getAllPublishers() {
+        return publisherRepository.findAll().stream()
+                .map(p -> PublisherDTO.SimpleResponse.fromEntityWithCount(p, bookRepository.countByPublisherId(p.getId())))
+                .collect(Collectors.toList());
+    }
+
+    public PublisherDTO.SimpleResponse getPublisherById(Long id) {
+        Publisher publisher = publisherRepository.findByIdWithBooks(id)
+                .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND,
+                        "Publisher", "id", id));
+        Long count = (long) publisher.getBooks().size();
+        return PublisherDTO.SimpleResponse.fromEntityWithCount(publisher, count);
+    }
+
+    public PublisherDTO.SimpleResponse getPublisherByName(String name) {
+        Publisher publisher = publisherRepository.findByName(name)
+                .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND,
+                        "Publisher", "name", name));
+        Long count = bookRepository.countByPublisherId(publisher.getId());
+        return PublisherDTO.SimpleResponse.fromEntityWithCount(publisher, count);
+    }
+
+    @Transactional
+    public PublisherDTO.Response createPublisher(PublisherDTO.Request request) {
+        if (publisherRepository.existsByName(request.getName())) {
+            throw new BusinessException(ErrorCode.PUBLISHER_NAME_DUPLICATE,
+                    request.getName());
+        }
+
+        Publisher publisher = Publisher.builder()
+                .name(request.getName())
+                .address(request.getAddress())
+                .establishedDate(request.getEstablishedDate())
+                .build();
+
+        Publisher savedPublisher = publisherRepository.save(publisher);
+        return PublisherDTO.Response.fromEntity(savedPublisher);
+    }
+
+    @Transactional
+    public PublisherDTO.Response updatePublisher(Long id, PublisherDTO.Request request) {
+        Publisher publisher = publisherRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND,
+                        "Publisher", "id", id));
+
+        if (!publisher.getName().equals(request.getName()) &&
+                publisherRepository.existsByName(request.getName())) {
+            throw new BusinessException(ErrorCode.PUBLISHER_NAME_DUPLICATE,
+                    request.getName());
+        }
+
+        publisher.setName(request.getName());
+
+        Publisher updatedPublisher = publisherRepository.save(publisher);
+        return PublisherDTO.Response.fromEntity(updatedPublisher);
+    }
+
+    @Transactional
+    public void deletePublisher(Long id) {
+        if(!publisherRepository.existsById(id)) {
+            throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND,
+                    "Publisher", "id", id);
+        }
+
+        Long bookCount = bookRepository.countByPublisherId(id);
+        if (bookCount > 0) {
+            throw new BusinessException(ErrorCode.PUBLISHER_HAS_BOOKS,
+                    id, bookCount);
+        }
+
+        publisherRepository.deleteById(id);
+    }
+}

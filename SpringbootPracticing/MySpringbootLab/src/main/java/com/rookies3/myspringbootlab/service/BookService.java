@@ -8,11 +8,13 @@ import com.rookies3.myspringbootlab.exception.ErrorCode;
 import com.rookies3.myspringbootlab.repository.BookDetailRepository;
 import com.rookies3.myspringbootlab.repository.BookRepository;
 
+import com.rookies3.myspringbootlab.repository.PublisherRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,6 +25,7 @@ public class BookService {
 
     private final BookRepository bookRepository;
     private final BookDetailRepository bookDetailRepository;
+    private final PublisherRepository publisherRepository;
 
     public List<BookDTO.Response> getAllBooks() {
         return bookRepository.findAll()
@@ -57,6 +60,20 @@ public class BookService {
                 .toList();
     }
 
+    public List<BookDTO.Response> getBooksByPublisherId(Long publisherId) {
+        // Validate department exists
+        if (!publisherRepository.existsById(publisherId)) {
+            throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND,
+                    "publisher", "id", publisherId);
+        }
+
+        return publisherRepository.findByIdWithBooks(publisherId)
+                .map(publisher -> publisher.getBooks().stream()
+                        .map(BookDTO.Response::fromEntity)
+                        .collect(Collectors.toList()))
+                .orElse(Collections.emptyList());
+    }
+
     @Transactional
     public BookDTO.Response createBook(BookDTO.Request request) {
         // Validate ISBN is not already in use
@@ -74,14 +91,14 @@ public class BookService {
                 .build();
 
         // Create book detail if provided
-        if (request.getDetail() != null) {
+        if (request.getDetailRequest() != null) {
             BookDetail bookDetail = BookDetail.builder()
-                    .description(request.getDetail().getDescription())
-                    .language(request.getDetail().getLanguage())
-                    .pageCount(request.getDetail().getPageCount())
-                    .publisher(request.getDetail().getPublisher())
-                    .coverImageUrl(request.getDetail().getCoverImageUrl())
-                    .edition(request.getDetail().getEdition())
+                    .description(request.getDetailRequest().getDescription())
+                    .language(request.getDetailRequest().getLanguage())
+                    .pageCount(request.getDetailRequest().getPageCount())
+                    .publisher(request.getDetailRequest().getPublisher())
+                    .coverImageUrl(request.getDetailRequest().getCoverImageUrl())
+                    .edition(request.getDetailRequest().getEdition())
                     //연관관계 저장
                     .book(book)
                     .build();
@@ -114,7 +131,7 @@ public class BookService {
         book.setPublishDate(request.getPublishDate());
 
         // Update book detail if provided
-        if (request.getDetail() != null) {
+        if (request.getDetailRequest() != null) {
             BookDetail bookDetail = book.getBookDetail();
 
             // Create new detail if not exists
@@ -125,12 +142,12 @@ public class BookService {
             }
 
             // Update detail fields
-            bookDetail.setDescription(request.getDetail().getDescription());
-            bookDetail.setLanguage(request.getDetail().getLanguage());
-            bookDetail.setPageCount(request.getDetail().getPageCount());
-            bookDetail.setPublisher(request.getDetail().getPublisher());
-            bookDetail.setCoverImageUrl(request.getDetail().getCoverImageUrl());
-            bookDetail.setEdition(request.getDetail().getEdition());
+            bookDetail.setDescription(request.getDetailRequest().getDescription());
+            bookDetail.setLanguage(request.getDetailRequest().getLanguage());
+            bookDetail.setPageCount(request.getDetailRequest().getPageCount());
+            bookDetail.setPublisher(request.getDetailRequest().getPublisher());
+            bookDetail.setCoverImageUrl(request.getDetailRequest().getCoverImageUrl());
+            bookDetail.setEdition(request.getDetailRequest().getEdition());
         }
 
         // Save and return updated book
