@@ -2,6 +2,7 @@ package com.rookies3.myspringbootlab.controller;
 
 import com.rookies3.myspringbootlab.entity.Book;
 import com.rookies3.myspringbootlab.exception.BusinessException;
+import com.rookies3.myspringbootlab.repository.BookRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
