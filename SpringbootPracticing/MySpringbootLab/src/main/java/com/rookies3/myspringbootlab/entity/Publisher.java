@@ -10,10 +10,11 @@ import java.util.List;
 
 @Entity
 @Table(name = "publishers")
-@Getter @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Getter
+@Setter
 public class Publisher {
 
     @Id
@@ -21,21 +22,23 @@ public class Publisher {
     @Column(name = "publisher_id")
     private Long id;
 
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false)
     private String name;
 
+    @Column(name = "established_date")
     private LocalDate establishedDate;
 
     private String address;
 
-    @OneToMany(mappedBy = "publisher", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
+    @OneToMany(mappedBy = "publisher", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
     private List<Book> books = new ArrayList<>();
 
+    // Helper methods
     public void addBook(Book book) {
         books.add(book);
-        book.setPublisher(null);
+        book.setPublisher(this);
     }
 
     public void removeBook(Book book) {

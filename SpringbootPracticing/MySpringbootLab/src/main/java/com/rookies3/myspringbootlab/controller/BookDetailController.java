@@ -1,7 +1,8 @@
 package com.rookies3.myspringbootlab.controller;
 
 import com.rookies3.myspringbootlab.controller.dto.BookDTO;
-import com.rookies3.myspringbootlab.service.BookService;
+import com.rookies3.myspringbootlab.service.BookDetailService;
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -11,11 +12,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/books/detail")
+@RequestMapping("/api/books/details")
 @RequiredArgsConstructor
 public class BookDetailController {
 
-    private final BookService bookService;
+    private final BookDetailService bookService;
 
     @GetMapping
     public ResponseEntity<List<BookDTO.Response>> getAllBooks() {
